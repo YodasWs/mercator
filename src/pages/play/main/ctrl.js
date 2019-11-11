@@ -187,6 +187,14 @@ window.game = {
 		},
 	],
 
+	startTurn() {
+		game.boardActions.classList.remove('disabled');
+		game.boardActions.scrollIntoView({
+			behavior: 'smooth',
+			block: 'center',
+		});
+	},
+
 	takeAction: (e) => {
 		if (game.currentActions.length || game.boardActions.classList.contains('disabled')) {
 			return;
@@ -252,9 +260,10 @@ window.game = {
 				break;
 			case 'starting-player':
 				break;
-			case 'grain':
-				break;
 			case 'vegetable':
+			case 'grain':
+				game.players[0].supplies[action]++;
+				game.doAction();
 				break;
 			case 'plow':
 			case 'sow':
@@ -290,15 +299,11 @@ window.game = {
 	},
 
 	endAction() {
-		game.boardActions.classList.remove('disabled');
-		game.boardActions.scrollIntoView({
-			behavior: 'smooth',
-			block: 'center',
-		});
 		if (++game.currentPlayer >= game.players.length) {
 			game.endRound();
 			return;
 		}
+		game.startTurn();
 	},
 
 	startRound() {
@@ -343,7 +348,7 @@ window.game = {
 		});
 
 		this.currentPlayer = 0;
-		game.boardActions.classList.remove('disabled');
+		game.startTurn();
 	},
 
 	endRound() {
@@ -371,16 +376,22 @@ window.game = {
 						btn.innerHTML = 'Plow Field';
 						btn.addEventListener('click', game.plow);
 						cell.appendChild(btn);
-						game.btnSkip.removeAttribute('hidden');
 						break;
 					}
 					case 'sow': {
 						if (c1 !== 'field') break;
-						const btn = document.createElement('button');
-						btn.innerHTML = 'Sow Field';
-						btn.addEventListener('click', game.sow);
-						cell.appendChild(btn);
-						game.btnSkip.removeAttribute('hidden');
+						let btn;
+						[
+							'grain',
+							'vegetable',
+						].forEach((plant) => {
+							if (game.players[0].supplies[plant] > 0) {
+								btn = document.createElement('button');
+								btn.innerHTML = `Sow ${plant}`;
+								btn.addEventListener('click', (e) => game.sow(e, plant));
+								cell.appendChild(btn);
+							}
+						});
 						break;
 					}
 				}
@@ -388,6 +399,15 @@ window.game = {
 			});
 			game.boardPlayers.appendChild(row);
 		});
+
+		// Show Skip Action Button?
+		switch (action) {
+			case 'plow':
+			case 'sow':
+				game.btnSkip.removeAttribute('hidden');
+				break;
+		}
+
 		game.boardPlayers.scrollIntoView({
 			behavior: 'smooth',
 		});
@@ -402,11 +422,16 @@ window.game = {
 		game.doAction();
 	},
 
-	sow(e) {
+	sow(e, plant) {
+		if (game.players[0].supplies[plant] < 1) {
+			return;
+		}
+
 		const field = e.currentTarget.closest('td');
 		const [col, row] = [field.dataset.col, field.dataset.row];
-		game.players[0].board[row][col] = 'grain:1';
-		game.buildBoard();
+		game.players[0].supplies[plant]--;
+		game.players[0].board[row][col] = `${plant}:1`;
+		game.buildBoard('sow');
 	},
 };
 
@@ -435,7 +460,15 @@ game.actions.sort((a, b) => {
 function Player() {
 	this.family = 2;
 	this.availableFamily = 2;
-	this.board = new Array(3).fill(0).map(a => new Array(5).fill(''));
+	this.board = new Array(5).fill(0).map(a => new Array(3).fill(''));
+	this.supplies = {
+		'wood': 0,
+		'clay': 0,
+		'reed': 0,
+		'stone': 0,
+		'grain': 0,
+		'vegetable': 0,
+	};
 }
 
 const numPlayers = Math.round(Math.random() * (5 - 3) + 3);

@@ -79,14 +79,14 @@
 	table#player-farm {
 		border-collapse: separate;
 		border-spacing: 5px;
-		border-radius: 5px;
+		border-radius: 12px;
 		width: calc(100% - #{$spacing} * 2);
 		margin: $spacing;
 		min-height: calc(300px + 5px * 4);
 		background: chocolate;
 
 		td {
-			border-radius: 5px;
+			border-radius: 10px;
 			background: green;
 			min-height: 100px;
 			min-width: 100px;
@@ -94,6 +94,16 @@
 
 			&[data-use="field"] {
 				background: saddlebrown;
+			}
+
+			&[data-use^="grain"] {
+				background: gold;
+				border: 5px solid saddlebrown;
+			}
+
+			&[data-use^="vegetable"] {
+				background: darkorange;
+				border: 5px solid saddlebrown;
 			}
 		}
 	}
