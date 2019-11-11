@@ -4,6 +4,10 @@ yodasws.page('play/main').setRoute({
 }).on('load', () => {
 	console.log('Players:', game.players[0]);
 	game.btnSkip = document.getElementById('btnSkip');
+	game.btnSkip.addEventListener('click', (e) => {
+		game.buildBoard();
+		game.doAction();
+	});
 	game.boardActions = document.getElementById('action-board');
 	game.boardPlayers = document.getElementById('player-farm');
 	game.buildBoard();
@@ -187,6 +191,7 @@ window.game = {
 		if (game.currentActions.length || game.boardActions.classList.contains('disabled')) {
 			return;
 		}
+		game.boardActions.classList.add('disabled');
 
 		const action = e instanceof Event ? e.currentTarget.dataset.action : e;
 		const actionTile = e instanceof Event ? e.currentTarget : document.querySelector(`button[data-action="${action}"]`);
@@ -233,6 +238,7 @@ window.game = {
 	},
 
 	doAction() {
+		game.btnSkip.setAttribute('hidden', '');
 		const action = game.currentActions.shift();
 		if (!action) {
 			game.endAction();
@@ -284,11 +290,15 @@ window.game = {
 	},
 
 	endAction() {
+		game.boardActions.classList.remove('disabled');
+		game.boardActions.scrollIntoView({
+			behavior: 'smooth',
+			block: 'center',
+		});
 		if (++game.currentPlayer >= game.players.length) {
 			game.endRound();
 			return;
 		}
-		game.boardActions.classList.remove('disabled');
 	},
 
 	startRound() {
@@ -333,10 +343,10 @@ window.game = {
 		});
 
 		this.currentPlayer = 0;
+		game.boardActions.classList.remove('disabled');
 	},
 
 	endRound() {
-		game.boardActions.classList.add('disabled');
 		[...document.querySelectorAll('#action-board button')].forEach((btn) => {
 			btn.setAttribute('disabled', '');
 		});
@@ -353,6 +363,7 @@ window.game = {
 				const cell = document.createElement('td');
 				cell.dataset.col = c2;
 				cell.dataset.row = r2;
+				cell.dataset.use = c1;
 				switch (action) {
 					case 'plow': {
 						if (c1 !== '') break;

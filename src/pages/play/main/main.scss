@@ -38,23 +38,10 @@
 			}
 
 			&:disabled {
-				color: grey;
+				border-color: grey;
+				color: lightgrey;
 			}
 
-			&:enabled {
-				&:focus,
-				&:hover {
-					padding: 1px 4px;
-					border: 3px solid green;
-					background: lightgreen;
-					font-size: 1rem;
-					cursor: pointer;
-
-					b {
-						font-size: calc(14 / 13.3333 * 1rem);
-					}
-				}
-			}
 		}
 
 		&.end button {
@@ -66,6 +53,26 @@
 			transition-property: min-height, border-width, opacity;
 			transition-duration: 1s, 500ms, 500ms;
 			transition-delay: 1s, 1.3s, 1.2s;
+		}
+
+		&.disabled button {
+			color: lightgrey;
+			border-color: grey;
+		}
+
+		&:not(.disabled) button:enabled {
+			&:focus,
+			&:hover {
+				padding: 1px 4px;
+				border: 3px solid green;
+				background: lightgreen;
+				font-size: 1rem;
+				cursor: pointer;
+
+				b {
+					font-size: calc(14 / 13.3333 * 1rem);
+				}
+			}
 		}
 	}
 
@@ -84,6 +91,10 @@
 			min-height: 100px;
 			min-width: 100px;
 			text-align: center;
+
+			&[data-use="field"] {
+				background: saddlebrown;
+			}
 		}
 	}
 }
