@@ -3,6 +3,9 @@ yodasws.page('play/main').setRoute({
 	route: '/play/main/',
 }).on('load', () => {
 	console.log('Players:', game.players[0]);
+	game.btnSkip = document.getElementById('btnSkip');
+	game.boardActions = document.getElementById('action-board');
+	game.boardPlayers = document.getElementById('player-farm');
 	game.buildBoard();
 	game.startRound();
 });
@@ -11,6 +14,7 @@ window.game = {
 	round: 0,
 	players: [],
 	currentPlayer: 0,
+	currentActions: [],
 
 	supplies: {
 		'sheep': 0,
@@ -29,7 +33,7 @@ window.game = {
 	actions: [
 		{
 			action: 'build',
-			text: '<b>Build Room</b><br/>or<br/><b>Build Stables</b>',
+			text: '<b>Build Rooms</b><br/>or<br/><b>Build Stables</b>',
 		},
 		{
 			action: 'starting-player',
@@ -180,15 +184,59 @@ window.game = {
 	],
 
 	takeAction: (e) => {
-		const action = e instanceof Event ? e.currentTarget.dataset.action : e;
-		const el = e instanceof Event ? e.currentTarget : document.querySelector(`button[data-action="${action}"]`);
-		console.log(el);
+		if (game.currentActions.length || game.boardActions.classList.contains('disabled')) {
+			return;
+		}
 
+		const action = e instanceof Event ? e.currentTarget.dataset.action : e;
+		const actionTile = e instanceof Event ? e.currentTarget : document.querySelector(`button[data-action="${action}"]`);
+		actionTile.setAttribute('disabled', '');
+		game.players[game.currentPlayer].availableFamily--;
 		if (game.supplies[action]) {
 			game.supplies[action] = 0;
-			[...el.querySelectorAll('output')].forEach((output) => {
+			[...actionTile.querySelectorAll('output')].forEach((output) => {
 				output.innerText = 0;
 			});
+		}
+
+		switch (action) {
+			case 'room-traveling':
+				break;
+			case 'starting-player':
+				break;
+			case 'plow-sow':
+				game.currentActions = [
+					'plow',
+					'sow',
+				];
+				break;
+			case 'occupation-1':
+				break;
+			case 'occupation-2':
+				break;
+			case 'occupation-1-2':
+				break;
+			case 'occupation-growth':
+				break;
+			case 'renovation-improvement':
+				break;
+			case 'renovation-fences':
+				break;
+			case 'fences':
+				break;
+			case 'animal':
+				break;
+			default:
+				game.currentActions.push(action);
+		}
+		game.doAction();
+	},
+
+	doAction() {
+		const action = game.currentActions.shift();
+		if (!action) {
+			game.endAction();
+			return;
 		}
 
 		switch (action) {
@@ -203,13 +251,8 @@ window.game = {
 			case 'vegetable':
 				break;
 			case 'plow':
-				game.buildBoard(action);
-				break;
 			case 'sow':
-				break;
-			case 'plow-sow':
-				game.takeAction('plow');
-				game.takeAction('sow');
+				game.buildBoard(action);
 				break;
 			case 'occupation-1':
 				break;
@@ -235,36 +278,17 @@ window.game = {
 				break;
 			case 'growth-2':
 				break;
-			case 'sheep':
-				break;
-			case 'boar':
-				break;
-			case 'cattle':
-				break;
-			case 'horse':
-				break;
 			case 'animal':
 				break;
-			case 'wood':
-				break;
-			case 'clay':
-				break;
-			case 'reed':
-				break;
-			case 'reed-stone-food':
-				break;
-			case 'reed-stone-wood':
-				break;
-			case 'stone':
-				break;
 		}
+	},
 
-		el.setAttribute('disabled', '');
-		game.players[game.currentPlayer++].availableFamily--;
-
-		if (game.currentPlayer >= game.players.length) {
+	endAction() {
+		if (++game.currentPlayer >= game.players.length) {
 			game.endRound();
+			return;
 		}
+		game.boardActions.classList.remove('disabled');
 	},
 
 	startRound() {
@@ -312,7 +336,7 @@ window.game = {
 	},
 
 	endRound() {
-		document.getElementById('action-board').classList.add('end');
+		game.boardActions.classList.add('disabled');
 		[...document.querySelectorAll('#action-board button')].forEach((btn) => {
 			btn.setAttribute('disabled', '');
 		});
@@ -322,30 +346,38 @@ window.game = {
 	},
 
 	buildBoard(action) {
-		const board = document.getElementById('player-farm');
-		board.innerHTML = '';
+		game.boardPlayers.innerHTML = '';
 		game.players[0].board.forEach((r1, r2) => {
 			const row = document.createElement('tr');
 			r1.forEach((c1, c2) => {
 				const cell = document.createElement('td');
-				const c3 = c1;
+				cell.dataset.col = c2;
+				cell.dataset.row = r2;
 				switch (action) {
-					case 'plow':
-						console.log('cell:', c3);
-						if (c3 !== '' || action !== action) break;
+					case 'plow': {
+						if (c1 !== '') break;
 						const btn = document.createElement('button');
 						btn.innerHTML = 'Plow Field';
 						btn.addEventListener('click', game.plow);
-						cell.dataset.col = c2;
-						cell.dataset.row = r2;
 						cell.appendChild(btn);
+						game.btnSkip.removeAttribute('hidden');
 						break;
+					}
+					case 'sow': {
+						if (c1 !== 'field') break;
+						const btn = document.createElement('button');
+						btn.innerHTML = 'Sow Field';
+						btn.addEventListener('click', game.sow);
+						cell.appendChild(btn);
+						game.btnSkip.removeAttribute('hidden');
+						break;
+					}
 				}
 				row.appendChild(cell);
 			});
-			board.appendChild(row);
+			game.boardPlayers.appendChild(row);
 		});
-		board.scrollIntoView({
+		game.boardPlayers.scrollIntoView({
 			behavior: 'smooth',
 		});
 	},
@@ -353,8 +385,16 @@ window.game = {
 	plow(e) {
 		const field = e.currentTarget.closest('td');
 		const [col, row] = [field.dataset.col, field.dataset.row];
-		game.players[game.currentPlayer].board[row][col] = 'field';
-		console.log('board:', game.players[game.currentPlayer].board);
+		// game.players[game.currentPlayer].board[row][col] = 'field';
+		game.players[0].board[row][col] = 'field';
+		game.buildBoard();
+		game.doAction();
+	},
+
+	sow(e) {
+		const field = e.currentTarget.closest('td');
+		const [col, row] = [field.dataset.col, field.dataset.row];
+		game.players[0].board[row][col] = 'grain:1';
 		game.buildBoard();
 	},
 };
