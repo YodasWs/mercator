@@ -2,12 +2,16 @@ yodasws.page('play/main').setRoute({
 	template: 'pages/play/main/main.html',
 	route: '/play/main/',
 }).on('load', () => {
+	console.log('Players:', game.players[0]);
+	game.buildBoard();
 	game.startRound();
 });
 
 window.game = {
 	round: 0,
-	players: 3,
+	players: [],
+	currentPlayer: 0,
+
 	supplies: {
 		'sheep': 0,
 		'boar': 0,
@@ -21,159 +25,172 @@ window.game = {
 		'reed-stone-food': 0,
 		'reed-stone-wood': 0,
 	},
+
 	actions: [
 		{
 			action: 'build',
-			text: 'Build Room or Build Stables',
+			text: '<b>Build Room</b><br/>or<br/><b>Build Stables</b>',
 		},
 		{
 			action: 'starting-player',
-			text: 'Starting Player and/or 1 Minor Improvement',
+			text: '<b>Starting Player</b><br/>and/or<br/><b>1 Minor Improvement</b>',
 		},
 		{
 			action: 'grain',
-			text: 'Take 1 Grain',
+			text: '<b>Take 1 Grain</b>',
 		},
 		{
 			action: 'plow',
-			text: 'Plow 1 Field',
+			text: '<b>Plow 1 Field</b>',
 		},
 		{
 			action: 'sow',
-			text: 'Sow and/or Bake Bread',
+			text: '<b>Sow</b><br/>and/or<br/><b>Bake Bread</b>',
 			round: 1,
 		},
 		{
 			action: 'plow-sow',
-			text: 'Plow 1 Field and/or Sow',
+			text: '<b>Plow 1 Field</b><br/>and/or<br/><b>Sow</b>',
 			round: 5,
 		},
 		{
 			action: 'occupation-1',
-			text: '1 Occupation, first free, subsequent costs 1 Food',
+			text: '<b>1 Occupation</b><br/>first free,<br/>subsequent<br/>costs 1 Food',
 		},
 		{
 			action: 'occupation-2',
-			text: '1 Occupation, costs 2 Food',
+			text: '<b>1 Occupation</b><br/>costs 2 Food',
 			players: 3,
 		},
 		{
 			action: 'occupation-1-2',
-			text: '1 Occupation, first or second costs 1 Food, subsequent costs 2 Food',
+			text: '<b>1 Occupation</b><br/>first or second<br/>costs 1 Food,<br/>subsequent<br/>costs 2 Food',
 			players: 4,
 		},
 		{
 			action: 'laborer',
-			text: 'Day Laborer',
+			text: '<b>Day Laborer</b>',
 		},
 		{
 			action: 'fishing',
-			text: 'Fishing, 2 Food',
+			text: '<b>Fishing</b><br/>2 Food',
 		},
 		{
 			action: 'renovation-improvement',
-			text: 'After Renovation, also 1 Major or Minor Improvement',
+			text: 'After <b>Renovation</b><br/>also <b>1 Major or Minor Improvement</b>',
 			round: 2,
 		},
 		{
 			action: 'renovation-fences',
-			text: 'After Renovation, also Fences',
+			text: 'After <b>Renovation</b><br/>also <b>Fences</b>',
 			round: 6,
 		},
 		{
 			action: 'improvement',
-			text: '1 Major or Minor Improvement',
+			text: '<b>1 Major or Minor Improvement</b>',
 			round: 1,
 		},
 		{
 			action: 'growth-1',
-			text: 'After Family Growth, also 1 Minor Improvement',
+			text: 'After <b>Family Growth</b><br/>also <b>1 Minor Improvement</b>',
 			round: 2,
 		},
 		{
 			action: 'growth-2',
-			text: 'Family Growth even without a room',
+			text: '<b>Family Growth</b> even without a room',
 			round: 5,
 		},
 		{
 			action: 'fences',
-			text: 'Fences',
+			text: '<b>Fences</b>',
 			round: 1,
 		},
 		{
 			action: 'sheep',
-			text: '<output></output> Sheep',
+			text: '<b><output></output> Sheep</b>',
 			round: 1,
 		},
 		{
 			action: 'boar',
-			text: '<output></output> Wild Boar',
+			text: '<b><output></output> Wild Boar</b>',
 			round: 3,
 		},
 		{
 			action: 'cattle',
-			text: '<output></output> Cattle',
+			text: '<b><output></output> Cattle</b>',
 			round: 4,
 		},
 		{
 			action: 'horse',
-			text: '<output></output> Horse',
+			text: '<b><output></output> Horse</b>',
 			round: 5,
 		},
 		{
 			action: 'animal',
-			text: '1 Sheep and 1 Food, or 1 Wild Board, or pay 1 Food for 1 Cattle',
+			text: '<b>1 Sheep and 1 Food</b><br/>or <b>1 Wild Board</b><br/>or pay 1 Food for <b>1 Cattle</b>',
 			round: 5,
 		},
 		{
 			action: 'vegetable',
-			text: 'Take 1 Vegetable',
+			text: '<b>Take 1 Vegetable</b>',
 			round: 3,
 		},
 		{
 			action: 'wood',
-			text: '<output></output> Wood',
+			text: '<b><output></output> Wood</b>',
 		},
 		{
 			action: 'clay',
-			text: '<output></output> Clay',
+			text: '<b><output></output> Clay</b>',
 		},
 		{
 			action: 'reed',
-			text: '<output></output> Reed',
+			text: '<b><output></output> Reed</b>',
 		},
 		{
 			action: 'stone-1',
-			text: '<output></output> Stone',
+			text: '<b><output></output> Stone</b>',
 			round: 2,
 		},
 		{
 			action: 'stone-2',
-			text: '<output></output> Stone',
+			text: '<b><output></output> Stone</b>',
 			round: 4,
 		},
 		{
 			action: 'reed-stone-food',
-			text: '<output></output> Reed, <output></output> Stone, and <output></output> Food',
+			text: '<b><output></output> Reed</b>,<br/><b><output></output> Stone</b>,<br/>and <b><output></output> Food</b></b>',
 			players: 4,
 		},
 		{
 			action: 'reed-stone-wood',
-			text: '<output></output> Reed, also 1 Stone and 1 Wood',
+			text: '<b><output></output> Reed</b><br/>also <b>1 Stone and 1 Wood</b>',
 			players: 5,
 		},
 		{
 			action: 'occupation-growth',
-			text: '1 Occupation or (after Round 5) Family Growth',
+			text: '<b>1 Occupation</b><br/>or<br/>(after Round 5) <b>Family Growth</b>',
 			players: 5,
 		},
 		{
 			action: 'room-traveling',
-			text: 'Build 1 Room or Traveling Players',
+			text: '<b>Build 1 Room</b><br/>or<br/><b>Traveling Players</b>',
 			players: 5,
 		},
 	],
-	takeAction(action) {
+
+	takeAction: (e) => {
+		const action = e instanceof Event ? e.currentTarget.dataset.action : e;
+		const el = e instanceof Event ? e.currentTarget : document.querySelector(`button[data-action="${action}"]`);
+		console.log(el);
+
+		if (game.supplies[action]) {
+			game.supplies[action] = 0;
+			[...el.querySelectorAll('output')].forEach((output) => {
+				output.innerText = 0;
+			});
+		}
+
 		switch (action) {
 			case 'build':
 				break;
@@ -186,12 +203,13 @@ window.game = {
 			case 'vegetable':
 				break;
 			case 'plow':
+				game.buildBoard(action);
 				break;
 			case 'sow':
 				break;
 			case 'plow-sow':
-				this.takeAction('plow');
-				this.takeAction('sow');
+				game.takeAction('plow');
+				game.takeAction('sow');
 				break;
 			case 'occupation-1':
 				break;
@@ -240,7 +258,15 @@ window.game = {
 			case 'stone':
 				break;
 		}
+
+		el.setAttribute('disabled', '');
+		game.players[game.currentPlayer++].availableFamily--;
+
+		if (game.currentPlayer >= game.players.length) {
+			game.endRound();
+		}
 	},
+
 	startRound() {
 		this.round++;
 		Object.entries(this.supplies).forEach(([key, num]) => {
@@ -258,27 +284,78 @@ window.game = {
 			}
 		});
 
-		const actionsList = document.querySelector('#action-board ol');
+		const actionsList = document.querySelector('#action-board');
+		actionsList.classList.remove('end');
 		actionsList.innerHTML = '';
+
 		this.actions.forEach((action) => {
 			if (action.round && this.round < action.round) {
 				return;
 			}
-			if (action.players && this.players !== action.players) {
+			if (action.players && this.players !== action.players.length) {
 				return;
 			}
 
-			const el = document.createElement('li');
 			const btn = document.createElement('button');
 			btn.innerHTML = action.text;
-			el.appendChild(btn);
+			btn.dataset.action = action.action;
+			btn.addEventListener('click', this.takeAction);
 
-			const output = el.querySelector('output');
-			if (output instanceof Element) {
+			[...btn.querySelectorAll('output')].forEach((output) => {
 				output.innerText = this.supplies[action.action];
-			}
-			actionsList.appendChild(el);
+			});
+
+			actionsList.appendChild(btn);
 		});
+
+		this.currentPlayer = 0;
+	},
+
+	endRound() {
+		document.getElementById('action-board').classList.add('end');
+		[...document.querySelectorAll('#action-board button')].forEach((btn) => {
+			btn.setAttribute('disabled', '');
+		});
+		setTimeout(() => {
+			game.startRound();
+		}, 5000);
+	},
+
+	buildBoard(action) {
+		const board = document.getElementById('player-farm');
+		board.innerHTML = '';
+		game.players[0].board.forEach((r1, r2) => {
+			const row = document.createElement('tr');
+			r1.forEach((c1, c2) => {
+				const cell = document.createElement('td');
+				const c3 = c1;
+				switch (action) {
+					case 'plow':
+						console.log('cell:', c3);
+						if (c3 !== '' || action !== action) break;
+						const btn = document.createElement('button');
+						btn.innerHTML = 'Plow Field';
+						btn.addEventListener('click', game.plow);
+						cell.dataset.col = c2;
+						cell.dataset.row = r2;
+						cell.appendChild(btn);
+						break;
+				}
+				row.appendChild(cell);
+			});
+			board.appendChild(row);
+		});
+		board.scrollIntoView({
+			behavior: 'smooth',
+		});
+	},
+
+	plow(e) {
+		const field = e.currentTarget.closest('td');
+		const [col, row] = [field.dataset.col, field.dataset.row];
+		game.players[game.currentPlayer].board[row][col] = 'field';
+		console.log('board:', game.players[game.currentPlayer].board);
+		game.buildBoard();
 	},
 };
 
@@ -303,3 +380,14 @@ game.actions.sort((a, b) => {
 }).forEach((a, round) => {
 	game.actions[a.i].round = round + 1;
 });
+
+function Player() {
+	this.family = 2;
+	this.availableFamily = 2;
+	this.board = new Array(3).fill(0).map(a => new Array(5).fill(''));
+}
+
+const numPlayers = Math.round(Math.random() * (5 - 3) + 3);
+for (let i=0; i<numPlayers; i++) {
+	game.players.push(new Player());
+}
