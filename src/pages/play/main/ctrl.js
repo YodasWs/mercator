@@ -300,15 +300,8 @@ window.game = {
 			}
 		}
 
-		console.log('remaining:', game.players[0].availableWorkers);
-
-		if (nextTurn) {
-			console.log('Next!');
-			game.startTurn();
-		} else {
-			console.log('Next round!');
-			game.endRound();
-		}
+		if (nextTurn) game.startTurn();
+		else game.endRound();
 	},
 
 	startRound() {
@@ -402,7 +395,12 @@ window.game = {
 						[
 							'grain',
 							'vegetable',
-						].forEach((plant) => {
+						].forEach((plant, i, plants) => {
+							// Can't sow over other plants
+							if (c1.improvements.intersects(plants)) {
+								return;
+							}
+
 							if (game.players[0].supplies[plant] > 0) {
 								btn = document.createElement('button');
 								btn.innerHTML = `Sow ${plant}`;
@@ -447,7 +445,10 @@ window.game = {
 		const field = e.currentTarget.closest('td');
 		const [col, row] = [field.dataset.col, field.dataset.row];
 		game.players[0].supplies[plant]--;
-		game.board[row][col].improvements.push(`${plant}:1`);
+		game.board[row][col].improvements.push(plant);
+		game.board[row][col].supplies = {
+			[plant]: 1,
+		};
 		game.buildBoard('sow');
 	},
 };
@@ -499,6 +500,10 @@ function Tile(terrain) {
 	this.improvements = [];
 	this.html = document.createElement('td');
 	this.html.dataset.terrain = terrain;
+}
+
+Array.prototype.intersects = function(arr) {
+	return this.filter(e => arr.includes(e)).length > 0;
 }
 
 const numPlayers = Math.round(Math.random() * (5 - 3) + 3);
