@@ -86,23 +86,13 @@ window.game = {
 			text: '<b>Fishing</b><br/>2 Food',
 		},
 		{
-			action: 'renovation',
-			text: '<b>Renovation</b>',
+			action: 'hire-1',
+			text: '<b>Hire Worker</b>',
 			round: 2,
 		},
 		{
-			action: 'renovation-fences',
-			text: 'After <b>Renovation</b><br/>also <b>Fences</b>',
-			round: 6,
-		},
-		{
-			action: 'growth-1',
-			text: '<b>Family Growth</b>',
-			round: 2,
-		},
-		{
-			action: 'growth-2',
-			text: '<b>Family Growth</b> even without [an improvement]',
+			action: 'hire-2',
+			text: '<b>Hire Worker</b> even without room',
 			round: 5,
 		},
 		{
@@ -173,8 +163,8 @@ window.game = {
 			players: 5,
 		},
 		{
-			action: 'occupation-growth',
-			text: '<b>1 Occupation</b><br/>or<br/>(after Round 5) <b>Family Growth</b>',
+			action: 'occupation-hire',
+			text: '<b>1 Occupation</b><br/>or<br/>(after Round 5) <b>Hire Worker</b>',
 			players: 5,
 		},
 		{
@@ -201,7 +191,7 @@ window.game = {
 		const action = e instanceof Event ? e.currentTarget.dataset.action : e;
 		const actionTile = e instanceof Event ? e.currentTarget : document.querySelector(`button[data-action="${action}"]`);
 		actionTile.setAttribute('disabled', '');
-		game.players[game.currentPlayer].availableFamily--;
+		game.players[game.currentPlayer].availableWorkers--;
 		if (game.supplies[action]) {
 			game.supplies[action] = 0;
 			[...actionTile.querySelectorAll('output')].forEach((output) => {
@@ -226,11 +216,7 @@ window.game = {
 				break;
 			case 'occupation-1-2':
 				break;
-			case 'occupation-growth':
-				break;
-			case 'renovation':
-				break;
-			case 'renovation-fences':
+			case 'occupation-hire':
 				break;
 			case 'fences':
 				break;
@@ -272,19 +258,17 @@ window.game = {
 				break;
 			case 'occupation-1-2':
 				break;
-			case 'occupation-growth':
+			case 'occupation-hire':
 				break;
 			case 'laborer':
 				break;
 			case 'fishing':
 				break;
-			case 'renovation-fences':
-				break;
 			case 'fences':
 				break;
-			case 'growth-1':
+			case 'hire-1':
 				break;
-			case 'growth-2':
+			case 'hire-2':
 				break;
 			case 'animal':
 				break;
@@ -456,8 +440,8 @@ game.actions.sort((a, b) => {
 });
 
 function Player() {
-	this.family = 2;
-	this.availableFamily = 2;
+	this.workers = 2;
+	this.availableWorkers = 2;
 	this.supplies = {
 		'wood': 0,
 		'clay': 0,
