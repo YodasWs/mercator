@@ -10,6 +10,9 @@ yodasws.page('play/main').setRoute({
 	});
 	game.boardActions = document.getElementById('action-board');
 	game.boardMap = document.getElementById('map-board');
+	game.info = {
+		top: document.getElementById('top-info'),
+	};
 	game.buildBoard();
 	game.startRound();
 });
@@ -180,6 +183,7 @@ window.game = {
 			behavior: 'smooth',
 			block: 'center',
 		});
+		game.info.top.innerHTML = `Current Player: <b>${game.players[game.currentPlayer].name}</b>`;
 	},
 
 	takeAction: (e) => {
@@ -360,8 +364,10 @@ window.game = {
 		[...game.boardActions.querySelectorAll('button')].forEach((btn) => {
 			btn.setAttribute('disabled', '');
 		});
-		alert('End of round');
-		game.startRound();
+		game.info.top.innerHTML = 'End of Round';
+		setTimeout(() => {
+			game.startRound();
+		}, 1000);
 	},
 
 	buildBoard(action) {
@@ -475,7 +481,7 @@ game.actions.sort((a, b) => {
 	game.actions[a.i].round = round + 1;
 });
 
-function Player() {
+function Player(name) {
 	this.workers = 2;
 	this.availableWorkers = 2;
 	this.supplies = {
@@ -486,6 +492,7 @@ function Player() {
 		'grain': 0,
 		'vegetable': 0,
 	};
+	this.name = name;
 }
 
 function Tile(terrain) {
@@ -506,7 +513,19 @@ Array.prototype.intersects = function(arr) {
 	return this.filter(e => arr.includes(e)).length > 0;
 }
 
+const names = [
+	'Ashley',
+	'Audrey',
+	'Jiaxin',
+	'Mathilde',
+	'Jane',
+	'Susan',
+	'Tara',
+	'Sally',
+	'Stephanie',
+];
+
 const numPlayers = Math.round(Math.random() * (5 - 3) + 3);
 for (let i=0; i<numPlayers; i++) {
-	game.players.push(new Player());
+	game.players.push(new Player(i === 0 ? 'You!' : names[Math.floor(Math.random() * names.length)]));
 }

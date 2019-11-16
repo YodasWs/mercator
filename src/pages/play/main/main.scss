@@ -107,4 +107,14 @@
 			}
 		}
 	}
+
+	#top-info {
+		text-align: center;
+		margin: 1em;
+		font-size: 1.2rem;
+
+		b {
+			border-bottom: 3px solid salmon;
+		}
+	}
 }
