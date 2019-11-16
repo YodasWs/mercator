@@ -331,7 +331,7 @@ window.game = {
 			if (action.round && this.round < action.round) {
 				return;
 			}
-			if (action.players && this.players !== action.players.length) {
+			if (action.players && action.players !== this.players.length) {
 				return;
 			}
 
