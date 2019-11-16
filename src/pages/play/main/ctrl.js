@@ -9,7 +9,7 @@ yodasws.page('play/main').setRoute({
 		game.doAction();
 	});
 	game.boardActions = document.getElementById('action-board');
-	game.boardPlayers = document.getElementById('player-farm');
+	game.boardMap = document.getElementById('map-board');
 	game.buildBoard();
 	game.startRound();
 });
@@ -19,6 +19,8 @@ window.game = {
 	players: [],
 	currentPlayer: 0,
 	currentActions: [],
+
+	board: new Array(5).fill(0).map(a => new Array(3).fill('').map(() => new Tile('grass'))),
 
 	supplies: {
 		'sheep': 0,
@@ -37,11 +39,11 @@ window.game = {
 	actions: [
 		{
 			action: 'build',
-			text: '<b>Build Rooms</b><br/>or<br/><b>Build Stables</b>',
+			text: '<b>Build Improvements</b>',
 		},
 		{
 			action: 'starting-player',
-			text: '<b>Starting Player</b><br/>and/or<br/><b>1 Minor Improvement</b>',
+			text: '<b>Starting Player</b>',
 		},
 		{
 			action: 'grain',
@@ -84,8 +86,8 @@ window.game = {
 			text: '<b>Fishing</b><br/>2 Food',
 		},
 		{
-			action: 'renovation-improvement',
-			text: 'After <b>Renovation</b><br/>also <b>1 Major or Minor Improvement</b>',
+			action: 'renovation',
+			text: '<b>Renovation</b>',
 			round: 2,
 		},
 		{
@@ -94,18 +96,13 @@ window.game = {
 			round: 6,
 		},
 		{
-			action: 'improvement',
-			text: '<b>1 Major or Minor Improvement</b>',
-			round: 1,
-		},
-		{
 			action: 'growth-1',
-			text: 'After <b>Family Growth</b><br/>also <b>1 Minor Improvement</b>',
+			text: '<b>Family Growth</b>',
 			round: 2,
 		},
 		{
 			action: 'growth-2',
-			text: '<b>Family Growth</b> even without a room',
+			text: '<b>Family Growth</b> even without [an improvement]',
 			round: 5,
 		},
 		{
@@ -135,7 +132,7 @@ window.game = {
 		},
 		{
 			action: 'animal',
-			text: '<b>1 Sheep and 1 Food</b><br/>or <b>1 Wild Board</b><br/>or pay 1 Food for <b>1 Cattle</b>',
+			text: '<b>1 Sheep and 1 Food</b><br/>or <b>1 Wild Boar</b><br/>or pay 1 Food for <b>1 Cattle</b>',
 			round: 5,
 		},
 		{
@@ -181,8 +178,8 @@ window.game = {
 			players: 5,
 		},
 		{
-			action: 'room-traveling',
-			text: '<b>Build 1 Room</b><br/>or<br/><b>Traveling Players</b>',
+			action: 'build-traveling',
+			text: '<b>Build 1 Improvement</b><br/>or<br/><b>Traveling Players</b>',
 			players: 5,
 		},
 	],
@@ -213,7 +210,7 @@ window.game = {
 		}
 
 		switch (action) {
-			case 'room-traveling':
+			case 'build-traveling':
 				break;
 			case 'starting-player':
 				break;
@@ -231,7 +228,7 @@ window.game = {
 				break;
 			case 'occupation-growth':
 				break;
-			case 'renovation-improvement':
+			case 'renovation':
 				break;
 			case 'renovation-fences':
 				break;
@@ -256,7 +253,7 @@ window.game = {
 		switch (action) {
 			case 'build':
 				break;
-			case 'room-traveling':
+			case 'build-traveling':
 				break;
 			case 'starting-player':
 				break;
@@ -280,10 +277,6 @@ window.game = {
 			case 'laborer':
 				break;
 			case 'fishing':
-				break;
-			case 'improvement':
-				break;
-			case 'renovation-improvement':
 				break;
 			case 'renovation-fences':
 				break;
@@ -323,9 +316,8 @@ window.game = {
 			}
 		});
 
-		const actionsList = document.querySelector('#action-board');
-		actionsList.classList.remove('end');
-		actionsList.innerHTML = '';
+		game.boardActions.classList.remove('end');
+		game.boardActions.innerHTML = '';
 
 		this.actions.forEach((action) => {
 			if (action.round && this.round < action.round) {
@@ -344,7 +336,7 @@ window.game = {
 				output.innerText = this.supplies[action.action];
 			});
 
-			actionsList.appendChild(btn);
+			game.boardActions.appendChild(btn);
 		});
 
 		this.currentPlayer = 0;
@@ -352,7 +344,7 @@ window.game = {
 	},
 
 	endRound() {
-		[...document.querySelectorAll('#action-board button')].forEach((btn) => {
+		[...game.boardActions.querySelectorAll('button')].forEach((btn) => {
 			btn.setAttribute('disabled', '');
 		});
 		setTimeout(() => {
@@ -361,25 +353,32 @@ window.game = {
 	},
 
 	buildBoard(action) {
-		game.boardPlayers.innerHTML = '';
-		game.players[0].board.forEach((r1, r2) => {
+		// game.boardMap.innerHTML = '';
+		const initialBuild = game.boardMap.innerHTML === '';
+		game.board.forEach((r1, r2) => {
 			const row = document.createElement('tr');
 			r1.forEach((c1, c2) => {
-				const cell = document.createElement('td');
-				cell.dataset.col = c2;
-				cell.dataset.row = r2;
-				cell.dataset.use = c1;
+				c1.html.innerHTML = '';
+				c1.html.dataset.col = c2;
+				c1.html.dataset.row = r2;
+				c1.html.dataset.use = c1.improvements.join(' ');
 				switch (action) {
 					case 'plow': {
-						if (c1 !== '') break;
+						if (c1.improvements.length > 0 || c1.terrain !== 'grass') {
+							break;
+						}
+
 						const btn = document.createElement('button');
 						btn.innerHTML = 'Plow Field';
 						btn.addEventListener('click', game.plow);
-						cell.appendChild(btn);
+						c1.html.appendChild(btn);
 						break;
 					}
 					case 'sow': {
-						if (c1 !== 'field') break;
+						if (!c1.improvements.includes('field')) {
+							break;
+						}
+
 						let btn;
 						[
 							'grain',
@@ -389,15 +388,15 @@ window.game = {
 								btn = document.createElement('button');
 								btn.innerHTML = `Sow ${plant}`;
 								btn.addEventListener('click', (e) => game.sow(e, plant));
-								cell.appendChild(btn);
+								c1.html.appendChild(btn);
 							}
 						});
 						break;
 					}
 				}
-				row.appendChild(cell);
+				if (initialBuild) row.appendChild(c1.html);
 			});
-			game.boardPlayers.appendChild(row);
+			if (initialBuild) game.boardMap.appendChild(row);
 		});
 
 		// Show Skip Action Button?
@@ -408,7 +407,7 @@ window.game = {
 				break;
 		}
 
-		game.boardPlayers.scrollIntoView({
+		game.boardMap.scrollIntoView({
 			behavior: 'smooth',
 		});
 	},
@@ -416,8 +415,7 @@ window.game = {
 	plow(e) {
 		const field = e.currentTarget.closest('td');
 		const [col, row] = [field.dataset.col, field.dataset.row];
-		// game.players[game.currentPlayer].board[row][col] = 'field';
-		game.players[0].board[row][col] = 'field';
+		game.board[row][col].improvements.push('field');
 		game.buildBoard();
 		game.doAction();
 	},
@@ -430,7 +428,7 @@ window.game = {
 		const field = e.currentTarget.closest('td');
 		const [col, row] = [field.dataset.col, field.dataset.row];
 		game.players[0].supplies[plant]--;
-		game.players[0].board[row][col] = `${plant}:1`;
+		game.board[row][col].improvements.push(`${plant}:1`);
 		game.buildBoard('sow');
 	},
 };
@@ -460,7 +458,6 @@ game.actions.sort((a, b) => {
 function Player() {
 	this.family = 2;
 	this.availableFamily = 2;
-	this.board = new Array(5).fill(0).map(a => new Array(3).fill(''));
 	this.supplies = {
 		'wood': 0,
 		'clay': 0,
@@ -469,6 +466,20 @@ function Player() {
 		'grain': 0,
 		'vegetable': 0,
 	};
+}
+
+function Tile(terrain) {
+	if (![
+		'grass',
+		'ocean',
+	].includes(terrain)) {
+		throw new Error('Unacceptable terrain type!');
+	}
+
+	this.terrain = terrain;
+	this.improvements = [];
+	this.html = document.createElement('td');
+	this.html.dataset.terrain = terrain;
 }
 
 const numPlayers = Math.round(Math.random() * (5 - 3) + 3);

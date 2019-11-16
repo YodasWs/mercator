@@ -76,7 +76,7 @@
 		}
 	}
 
-	table#player-farm {
+	table#map-board {
 		border-collapse: separate;
 		border-spacing: 5px;
 		border-radius: 12px;
@@ -92,16 +92,16 @@
 			min-width: 100px;
 			text-align: center;
 
-			&[data-use="field"] {
+			&[data-use~="field"] {
 				background: saddlebrown;
 			}
 
-			&[data-use^="grain"] {
+			&[data-use*="grain"] {
 				background: gold;
 				border: 5px solid saddlebrown;
 			}
 
-			&[data-use^="vegetable"] {
+			&[data-use*="vegetable"] {
 				background: darkorange;
 				border: 5px solid saddlebrown;
 			}
