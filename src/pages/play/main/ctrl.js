@@ -86,12 +86,12 @@ window.game = {
 			text: '<b>Fishing</b><br/>2 Food',
 		},
 		{
-			action: 'hire-1',
+			action: 'hire',
 			text: '<b>Hire Worker</b>',
 			round: 2,
 		},
 		{
-			action: 'hire-2',
+			action: 'hire-wo-room',
 			text: '<b>Hire Worker</b> even without room',
 			round: 5,
 		},
@@ -188,6 +188,10 @@ window.game = {
 		}
 		game.boardActions.classList.add('disabled');
 
+		if (game.players[game.currentPlayer].availableWorkers <= 0) {
+			return;
+		}
+
 		const action = e instanceof Event ? e.currentTarget.dataset.action : e;
 		const actionTile = e instanceof Event ? e.currentTarget : document.querySelector(`button[data-action="${action}"]`);
 		actionTile.setAttribute('disabled', '');
@@ -246,12 +250,12 @@ window.game = {
 			case 'vegetable':
 			case 'grain':
 				game.players[0].supplies[action]++;
-				game.doAction();
 				break;
 			case 'plow':
 			case 'sow':
 				game.buildBoard(action);
-				break;
+				// Wait for User action
+				return;
 			case 'occupation-1':
 				break;
 			case 'occupation-2':
@@ -266,21 +270,45 @@ window.game = {
 				break;
 			case 'fences':
 				break;
-			case 'hire-1':
+			case 'hire':
+				if (game.players[0].workers < 5) {
+					game.players[0].workers++;
+				}
 				break;
-			case 'hire-2':
+			case 'hire-wo-room':
+				if (game.players[0].workers < 5) {
+					game.players[0].workers++;
+				}
 				break;
 			case 'animal':
 				break;
 		}
+
+		game.doAction();
 	},
 
 	endAction() {
-		if (++game.currentPlayer >= game.players.length) {
-			game.endRound();
-			return;
+		let nextTurn = false;
+		for (let i=0; i<game.players.length; i++) {
+			game.currentPlayer++;
+			if (game.currentPlayer >= game.players.length) {
+				game.currentPlayer = 0;
+			}
+			if (game.players[game.currentPlayer].availableWorkers !== 0) {
+				nextTurn = true;
+				break;
+			}
 		}
-		game.startTurn();
+
+		console.log('remaining:', game.players[0].availableWorkers);
+
+		if (nextTurn) {
+			console.log('Next!');
+			game.startTurn();
+		} else {
+			console.log('Next round!');
+			game.endRound();
+		}
 	},
 
 	startRound() {
@@ -323,6 +351,14 @@ window.game = {
 			game.boardActions.appendChild(btn);
 		});
 
+		[...game.boardActions.querySelectorAll('button')].forEach((btn) => {
+			btn.removeAttribute('disabled');
+		});
+
+		this.players.forEach((player) => {
+			player.availableWorkers = player.workers;
+		});
+
 		this.currentPlayer = 0;
 		game.startTurn();
 	},
@@ -331,9 +367,8 @@ window.game = {
 		[...game.boardActions.querySelectorAll('button')].forEach((btn) => {
 			btn.setAttribute('disabled', '');
 		});
-		setTimeout(() => {
-			game.startRound();
-		}, 5000);
+		alert('End of round');
+		game.startRound();
 	},
 
 	buildBoard(action) {
