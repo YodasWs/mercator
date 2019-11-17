@@ -1,10 +1,22 @@
 [y-page='play/main'] {
+	#top-info {
+		text-align: center;
+		margin: 1em;
+		font-size: 1.2rem;
+
+		b {
+			color: tomato;
+			border-bottom: 3px solid salmon;
+		}
+	}
+
 	#action-board {
 		$line-height: 1.3rem;
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax($line-height * 5, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(1fr, 150px));
 		grid-auto-rows: $line-height * 5;
-		grid-gap: 10px;
+		gap: 10px;
 
 		button {
 			flex: 1 0 33%;
@@ -62,21 +74,17 @@
 		}
 	}
 
-	table#map-board {
-		$spacing: 5px;
-		border-collapse: separate;
-		border-spacing: 5px;
+	div#map-board {
+		display: grid;
+		$padding: 5px;
+		gap: $padding * 2;
+		padding: $padding * 1.5;
 		border-radius: 12px;
-		width: calc(100% - #{$spacing} * 2);
-		margin: $spacing;
-		min-height: calc(300px + 5px * 4);
+		width: 100%;
+		margin: 10px 0;
 		background: darkgoldenrod;
 
-		tr:nth-child(even) {
-			margin-left: 100px;
-		}
-
-		td {
+		.tile {
 			border-radius: 10px;
 			min-height: 100px;
 			min-width: 100px;
@@ -110,17 +118,6 @@
 				background: #e97a1c;
 				border: 5px solid $farm;
 			}
-		}
-	}
-
-	#top-info {
-		text-align: center;
-		margin: 1em;
-		font-size: 1.2rem;
-
-		b {
-			color: tomato;
-			border-bottom: 3px solid salmon;
 		}
 	}
 }

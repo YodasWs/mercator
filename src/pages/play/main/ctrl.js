@@ -351,7 +351,6 @@ window.game = {
 		// game.boardMap.innerHTML = '';
 		const initialBuild = game.boardMap.innerHTML === '';
 		game.board.forEach((r1, r2) => {
-			const row = document.createElement('tr');
 			r1.forEach((c1, c2) => {
 				c1.html.innerHTML = '';
 				c1.html.dataset.col = c2;
@@ -397,10 +396,11 @@ window.game = {
 						break;
 					}
 				}
-				if (initialBuild) row.appendChild(c1.html);
+				if (initialBuild) game.boardMap.appendChild(c1.html);
 			});
-			if (initialBuild) game.boardMap.appendChild(row);
 		});
+		game.boardMap.style.gridTemplateColumns = `repeat(${game.board[0].length}, 1fr)`;
+		game.boardMap.style.gridTemplateRows = `repeat(${game.board.length}, 1fr)`;
 
 		// Show Skip Action Button?
 		switch (action) {
@@ -416,7 +416,7 @@ window.game = {
 	},
 
 	plow(e) {
-		const farm = e.currentTarget.closest('td');
+		const farm = e.currentTarget.closest('.tile');
 		const [col, row] = [farm.dataset.col, farm.dataset.row];
 		game.board[row][col].improvements.push('farm');
 		game.buildBoard();
@@ -428,7 +428,7 @@ window.game = {
 			return;
 		}
 
-		const farm = e.currentTarget.closest('td');
+		const farm = e.currentTarget.closest('.tile');
 		const [col, row] = [farm.dataset.col, farm.dataset.row];
 		game.players[game.currentPlayer].supplies[plant]--;
 		game.board[row][col].improvements.push(plant);
@@ -486,7 +486,8 @@ function Tile(terrain) {
 
 	this.terrain = terrain;
 	this.improvements = [];
-	this.html = document.createElement('td');
+	this.html = document.createElement('div');
+	this.html.classList.add('tile');
 	this.html.dataset.terrain = terrain;
 }
 
