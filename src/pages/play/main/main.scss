@@ -1,40 +1,26 @@
 [y-page='play/main'] {
-	$spacing: 5px;
-
 	#action-board {
-		display: flex;
-		flex-flow: row wrap;
-		justify-content: flex-start;
-		align-content: flex-start;
+		$line-height: 1.3rem;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax($line-height * 5, 1fr));
+		grid-auto-rows: $line-height * 5;
+		grid-gap: 10px;
 
 		button {
 			flex: 1 0 33%;
-			margin: $spacing;
 			padding: 2px 5px;
 			border: 2px solid green;
 			border-radius: 5px;
 			opacity: 1;
-			$line-height: 1.3rem;
-			min-height: $line-height * 5;
-			max-width: calc(33% - #{$spacing} * 2);
 			background: white;
-			transition: background 500ms, font-size 500ms, min-height 1s 1s;
+			transition: background 500ms, font-size 500ms;
 			line-height: $line-height;
 			font-size: calc(13.3333 / 16 * 1rem);
 			color: black;
 
 			b {
 				font-size: calc(14 / 16 * 1rem);
-				transition: background 500ms, font-size 500ms;
-			}
-
-			@media (min-width: 550px) {
-				max-width: calc(25% - #{$spacing} * 2);
-			}
-
-			@media (min-width: 680px) {
-				max-width: 170px;
-				flex: 1 0 calc(150px - #{$spacing} * 2);
+				transition: font-size 500ms;
 			}
 
 			&:disabled {
@@ -77,6 +63,7 @@
 	}
 
 	table#map-board {
+		$spacing: 5px;
 		border-collapse: separate;
 		border-spacing: 5px;
 		border-radius: 12px;
