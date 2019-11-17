@@ -5,16 +5,16 @@ yodasws.page('play/main').setRoute({
 	console.log('Players:', game.players[0]);
 	game.btnSkip = document.getElementById('btnSkip');
 	game.btnSkip.addEventListener('click', (e) => {
-		game.buildBoard();
+		game.buildMap();
 		game.doAction();
 	});
 	game.boardActions = document.getElementById('action-board');
+	game.actionButtons;
 	game.boardMap = document.getElementById('map-board');
 	game.info = {
 		top: document.getElementById('top-info'),
 	};
-	game.buildBoard();
-	game.startRound();
+	game.startGame();
 });
 
 window.game = {
@@ -23,7 +23,37 @@ window.game = {
 	currentPlayer: 0,
 	currentActions: [],
 
-	board: new Array(5).fill(0).map(a => new Array(3).fill('').map(() => new Tile('grass'))),
+	map: new Array(5).fill(0).map(a => new Array(3).fill('').map(() => new Tile('grass'))),
+
+	buildings: {
+		mine: {
+			name: 'Mine',
+		},
+		papermill: {
+			name: 'Papermill',
+		},
+		sawmill: {
+			name: 'Sawmill',
+		},
+		quarry: {
+			name: 'Quarry',
+		},
+		'oil rig': {
+			name: 'Oil Rig',
+			terrain: [
+				'ocean',
+			],
+		},
+		'coal burner': {
+			name: 'Coal Burner',
+		},
+		mint: {
+			name: 'Mint',
+		},
+		'stock exchange': {
+			name: 'Stock Exchange',
+		},
+	},
 
 	supplies: {
 		'sheep': 0,
@@ -216,7 +246,7 @@ window.game = {
 	},
 
 	doAction() {
-		game.btnSkip.setAttribute('hidden', '');
+		game.hideActions();
 		const action = game.currentActions.shift();
 		if (!action) {
 			game.endAction();
@@ -225,7 +255,9 @@ window.game = {
 
 		switch (action) {
 			case 'build':
-				break;
+				game.buildSubActionBoard(action);
+				// Wait for User action
+				return;
 			case 'build-traveling':
 				break;
 			case 'starting-player':
@@ -236,7 +268,8 @@ window.game = {
 				break;
 			case 'plow':
 			case 'sow':
-				game.buildBoard(action);
+				game.buildSubActionBoard(action);
+				game.buildMap(action);
 				// Wait for User action
 				return;
 			case 'laborer':
@@ -277,6 +310,24 @@ window.game = {
 
 		if (nextTurn) game.startTurn();
 		else game.endRound();
+	},
+
+	startGame() {
+		// Build subaction buttons
+		const buttonHolder = document.getElementById('action-buttons')
+		Object.entries(game.buildings).forEach(([id, btn]) => {
+			const el = document.createElement('button');
+			el.addEventListener('click', game.build);
+			el.setAttribute('hidden', '');
+			buttonHolder.appendChild(el);
+			el.dataset.action = 'build';
+			el.dataset.building = id;
+			el.innerText = btn.name;
+		});
+		game.actionButtons = document.querySelectorAll('#action-buttons button');
+
+		game.buildMap();
+		game.startRound();
 	},
 
 	startRound() {
@@ -347,16 +398,36 @@ window.game = {
 		}, 1000);
 	},
 
-	buildBoard(action) {
+	buildMap(action, options = {}) {
 		// game.boardMap.innerHTML = '';
 		const initialBuild = game.boardMap.innerHTML === '';
-		game.board.forEach((r1, r2) => {
+		game.map.forEach((r1, r2) => {
 			r1.forEach((c1, c2) => {
 				c1.html.innerHTML = '';
 				c1.html.dataset.col = c2;
 				c1.html.dataset.row = r2;
 				c1.html.dataset.use = c1.improvements.join(' ');
 				switch (action) {
+					case 'build': {
+						const building = game.buildings[options.building];
+						if (!building) break;
+
+						if (c1.improvements.length > 0) break;
+						
+						if (!(building.terrain || [
+							'plains',
+							'grass',
+						]).includes(c1.terrain)) {
+							break;
+						}
+						const btn = document.createElement('button');
+						btn.innerHTML = 'Build Here';
+						btn.addEventListener('click', game.buildHere);
+						btn.dataset.building = building;
+						c1.html.appendChild(btn);
+						break;
+					}
+
 					case 'plow': {
 						if (c1.improvements.length > 0 || ![
 							'plains',
@@ -399,27 +470,36 @@ window.game = {
 				if (initialBuild) game.boardMap.appendChild(c1.html);
 			});
 		});
-		game.boardMap.style.gridTemplateColumns = `repeat(${game.board[0].length}, 1fr)`;
-		game.boardMap.style.gridTemplateRows = `repeat(${game.board.length}, 1fr)`;
-
-		// Show Skip Action Button?
-		switch (action) {
-			case 'plow':
-			case 'sow':
-				game.btnSkip.removeAttribute('hidden');
-				break;
-		}
+		game.boardMap.style.gridTemplateColumns = `repeat(${game.map[0].length}, 1fr)`;
+		game.boardMap.style.gridTemplateRows = `repeat(${game.map.length}, 1fr)`;
 
 		game.boardMap.scrollIntoView({
 			behavior: 'smooth',
 		});
 	},
 
+	buildSubActionBoard(action) {
+		// Show Action Buttons?
+		game.actionButtons.forEach((btn) => {
+			if (btn.dataset.action.includes(action)) {
+				btn.removeAttribute('hidden');
+			}
+		});
+
+		// Show button to skip further action
+		switch (action) {
+			case 'plow':
+			case 'sow':
+				game.btnSkip.removeAttribute('hidden');
+				break;
+		}
+	},
+
 	plow(e) {
 		const farm = e.currentTarget.closest('.tile');
 		const [col, row] = [farm.dataset.col, farm.dataset.row];
-		game.board[row][col].improvements.push('farm');
-		game.buildBoard();
+		game.map[row][col].improvements.push('farm');
+		game.buildMap();
 		game.doAction();
 	},
 
@@ -431,11 +511,38 @@ window.game = {
 		const farm = e.currentTarget.closest('.tile');
 		const [col, row] = [farm.dataset.col, farm.dataset.row];
 		game.players[game.currentPlayer].supplies[plant]--;
-		game.board[row][col].improvements.push(plant);
-		game.board[row][col].supplies = {
+		game.map[row][col].improvements.push(plant);
+		game.map[row][col].supplies = {
 			[plant]: 1,
 		};
-		game.buildBoard('sow');
+		game.buildMap('sow');
+	},
+
+	hideActions() {
+		game.actionButtons.forEach(btn => btn.setAttribute('hidden', ''));
+	},
+
+	build(e) {
+		const btn = e.target;
+		// User has only picked which building
+		game.hideActions();
+		// Next, User needs to select where
+		game.buildMap('build', {
+			building: btn.dataset.building,
+		});
+		return;
+	},
+
+	// Place building here
+	buildHere(e) {
+		const btn = e.target;
+		const td = btn.closest('.tile');
+		console.log('td:', td);
+		const [col, row] = [td.dataset.col, td.dataset.row];
+		game.map[row][col].improvements.push(btn.dataset.building);
+		console.log('tile:', game.map[row][col]);
+		game.buildMap();
+		game.doAction();
 	},
 };
 
@@ -507,7 +614,7 @@ const names = [
 	'Stephanie',
 ];
 
-game.board = [
+game.map = [
 	['plains', 'plains', 'ocean', 'plains', 'plains'],
 	['plains', 'grass', 'ocean', 'grass', 'plains'],
 	['plains', 'grass', 'ocean', 'grass', 'plains'],
