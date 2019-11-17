@@ -54,7 +54,7 @@ window.game = {
 		},
 		{
 			action: 'plow',
-			text: '<b>Plow 1 Field</b>',
+			text: '<b>Plow 1 Farmland</b>',
 		},
 		{
 			action: 'sow',
@@ -63,22 +63,12 @@ window.game = {
 		},
 		{
 			action: 'plow-sow',
-			text: '<b>Plow 1 Field</b><br/>and/or<br/><b>Sow</b>',
+			text: '<b>Plow 1 Farmland</b><br/>and/or<br/><b>Sow</b>',
 			round: 5,
 		},
 		{
-			action: 'occupation-1',
-			text: '<b>1 Occupation</b><br/>first free,<br/>subsequent<br/>costs 1 Food',
-		},
-		{
-			action: 'occupation-2',
-			text: '<b>1 Occupation</b><br/>costs 2 Food',
-			players: 3,
-		},
-		{
-			action: 'occupation-1-2',
-			text: '<b>1 Occupation</b><br/>first or second<br/>costs 1 Food,<br/>subsequent<br/>costs 2 Food',
-			players: 4,
+			action: 'road',
+			text: '<b>Build Road</b>',
 		},
 		{
 			action: 'laborer',
@@ -166,11 +156,6 @@ window.game = {
 			players: 5,
 		},
 		{
-			action: 'occupation-hire',
-			text: '<b>1 Occupation</b><br/>or<br/>(after Round 5) <b>Hire Worker</b>',
-			players: 5,
-		},
-		{
 			action: 'build-traveling',
 			text: '<b>Build 1 Improvement</b><br/>or<br/><b>Traveling Players</b>',
 			players: 5,
@@ -207,6 +192,7 @@ window.game = {
 			});
 		}
 
+		// If action does multiple actions, build that list here
 		switch (action) {
 			case 'build-traveling':
 				break;
@@ -218,19 +204,12 @@ window.game = {
 					'sow',
 				];
 				break;
-			case 'occupation-1':
-				break;
-			case 'occupation-2':
-				break;
-			case 'occupation-1-2':
-				break;
-			case 'occupation-hire':
-				break;
 			case 'fences':
 				break;
 			case 'animal':
 				break;
 			default:
+				// Only one thing to do
 				game.currentActions.push(action);
 		}
 		game.doAction();
@@ -253,21 +232,13 @@ window.game = {
 				break;
 			case 'vegetable':
 			case 'grain':
-				game.players[0].supplies[action]++;
+				game.players[game.currentPlayer].supplies[action]++;
 				break;
 			case 'plow':
 			case 'sow':
 				game.buildBoard(action);
 				// Wait for User action
 				return;
-			case 'occupation-1':
-				break;
-			case 'occupation-2':
-				break;
-			case 'occupation-1-2':
-				break;
-			case 'occupation-hire':
-				break;
 			case 'laborer':
 				break;
 			case 'fishing':
@@ -275,13 +246,13 @@ window.game = {
 			case 'fences':
 				break;
 			case 'hire':
-				if (game.players[0].workers < 5) {
-					game.players[0].workers++;
+				if (game.players[game.currentPlayer].workers < 5) {
+					game.players[game.currentPlayer].workers++;
 				}
 				break;
 			case 'hire-wo-room':
-				if (game.players[0].workers < 5) {
-					game.players[0].workers++;
+				if (game.players[game.currentPlayer].workers < 5) {
+					game.players[game.currentPlayer].workers++;
 				}
 				break;
 			case 'animal':
@@ -320,6 +291,8 @@ window.game = {
 				'stone-2',
 			].includes(key)) {
 				if (this.round >= this.actions.filter(a => a.action === key)[0].round) this.supplies[key]++;
+			} else if (key === 'wood') {
+				this.supplies[key] += 3;
 			} else {
 				this.supplies[key]++;
 			}
@@ -365,6 +338,10 @@ window.game = {
 			btn.setAttribute('disabled', '');
 		});
 		game.info.top.innerHTML = 'End of Round';
+		game.info.top.scrollIntoView({
+			behavior: 'smooth',
+			block: 'center',
+		})
 		setTimeout(() => {
 			game.startRound();
 		}, 1000);
@@ -382,18 +359,21 @@ window.game = {
 				c1.html.dataset.use = c1.improvements.join(' ');
 				switch (action) {
 					case 'plow': {
-						if (c1.improvements.length > 0 || c1.terrain !== 'grass') {
+						if (c1.improvements.length > 0 || ![
+							'plains',
+							'grass',
+						].includes(c1.terrain)) {
 							break;
 						}
 
 						const btn = document.createElement('button');
-						btn.innerHTML = 'Plow Field';
+						btn.innerHTML = 'Plow Farmland';
 						btn.addEventListener('click', game.plow);
 						c1.html.appendChild(btn);
 						break;
 					}
 					case 'sow': {
-						if (!c1.improvements.includes('field')) {
+						if (!c1.improvements.includes('farm')) {
 							break;
 						}
 
@@ -407,7 +387,7 @@ window.game = {
 								return;
 							}
 
-							if (game.players[0].supplies[plant] > 0) {
+							if (game.players[game.currentPlayer].supplies[plant] > 0) {
 								btn = document.createElement('button');
 								btn.innerHTML = `Sow ${plant}`;
 								btn.addEventListener('click', (e) => game.sow(e, plant));
@@ -436,21 +416,21 @@ window.game = {
 	},
 
 	plow(e) {
-		const field = e.currentTarget.closest('td');
-		const [col, row] = [field.dataset.col, field.dataset.row];
-		game.board[row][col].improvements.push('field');
+		const farm = e.currentTarget.closest('td');
+		const [col, row] = [farm.dataset.col, farm.dataset.row];
+		game.board[row][col].improvements.push('farm');
 		game.buildBoard();
 		game.doAction();
 	},
 
 	sow(e, plant) {
-		if (game.players[0].supplies[plant] < 1) {
+		if (game.players[game.currentPlayer].supplies[plant] < 1) {
 			return;
 		}
 
-		const field = e.currentTarget.closest('td');
-		const [col, row] = [field.dataset.col, field.dataset.row];
-		game.players[0].supplies[plant]--;
+		const farm = e.currentTarget.closest('td');
+		const [col, row] = [farm.dataset.col, farm.dataset.row];
+		game.players[game.currentPlayer].supplies[plant]--;
 		game.board[row][col].improvements.push(plant);
 		game.board[row][col].supplies = {
 			[plant]: 1,
@@ -499,6 +479,7 @@ function Tile(terrain) {
 	if (![
 		'grass',
 		'ocean',
+		'plains',
 	].includes(terrain)) {
 		throw new Error('Unacceptable terrain type!');
 	}
@@ -525,7 +506,16 @@ const names = [
 	'Stephanie',
 ];
 
-const numPlayers = Math.round(Math.random() * (5 - 3) + 3);
+game.board = [
+	['plains', 'plains', 'ocean', 'plains', 'plains'],
+	['plains', 'grass', 'ocean', 'grass', 'plains'],
+	['plains', 'grass', 'ocean', 'grass', 'plains'],
+	['plains', 'plains', 'ocean', 'plains', 'plains'],
+].map((row) => {
+	return row.map(cell => new Tile(cell));
+});
+
+const numPlayers = 4; // Math.round(Math.random() * (5 - 3) + 3);
 for (let i=0; i<numPlayers; i++) {
-	game.players.push(new Player(i === 0 ? 'You!' : names[Math.floor(Math.random() * names.length)]));
+	game.players.push(new Player(i === 0 ? 'You!' : names[i /* Math.floor(Math.random() * names.length) */]));
 }

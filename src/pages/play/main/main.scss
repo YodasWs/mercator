@@ -83,27 +83,45 @@
 		width: calc(100% - #{$spacing} * 2);
 		margin: $spacing;
 		min-height: calc(300px + 5px * 4);
-		background: chocolate;
+		background: darkgoldenrod;
+
+		tr:nth-child(even) {
+			margin-left: 100px;
+		}
 
 		td {
 			border-radius: 10px;
-			background: green;
 			min-height: 100px;
 			min-width: 100px;
 			text-align: center;
+			background: white;
 
-			&[data-use~="field"] {
-				background: saddlebrown;
+			&[data-terrain~="grass"] {
+				background: #36a165;
 			}
 
-			&[data-use*="grain"] {
+			&[data-terrain~="ocean"] {
+				background: cornflowerblue;
+			}
+
+			&[data-terrain~="plains"] {
+				background: #ffeb88;
+			}
+
+			$farm: goldenrod;
+
+			&[data-use~="farm"] {
+				background: $farm;
+			}
+
+			&[data-use~="grain"] {
 				background: gold;
-				border: 5px solid saddlebrown;
+				border: 5px solid $farm;
 			}
 
-			&[data-use*="vegetable"] {
-				background: darkorange;
-				border: 5px solid saddlebrown;
+			&[data-use~="vegetable"] {
+				background: #e97a1c;
+				border: 5px solid $farm;
 			}
 		}
 	}
@@ -114,6 +132,7 @@
 		font-size: 1.2rem;
 
 		b {
+			color: tomato;
 			border-bottom: 3px solid salmon;
 		}
 	}
