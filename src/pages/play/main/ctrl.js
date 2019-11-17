@@ -38,19 +38,19 @@ window.game = {
 		quarry: {
 			name: 'Quarry',
 		},
-		'oil rig': {
+		'oil-rig': {
 			name: 'Oil Rig',
 			terrain: [
 				'ocean',
 			],
 		},
-		'coal burner': {
+		'coal-burner': {
 			name: 'Coal Burner',
 		},
 		mint: {
 			name: 'Mint',
 		},
-		'stock exchange': {
+		'stock-exchange': {
 			name: 'Stock Exchange',
 		},
 	},
@@ -321,7 +321,7 @@ window.game = {
 			el.setAttribute('hidden', '');
 			buttonHolder.appendChild(el);
 			el.dataset.action = 'build';
-			el.dataset.building = id;
+			el.dataset.improvement = id;
 			el.innerText = btn.name;
 		});
 		game.actionButtons = document.querySelectorAll('#action-buttons button');
@@ -409,12 +409,12 @@ window.game = {
 				c1.html.dataset.use = c1.improvements.join(' ');
 				switch (action) {
 					case 'build': {
-						const building = game.buildings[options.building];
-						if (!building) break;
+						const improvement = game.buildings[options.improvement];
+						if (!improvement) break;
 
 						if (c1.improvements.length > 0) break;
 						
-						if (!(building.terrain || [
+						if (!(improvement.terrain || [
 							'plains',
 							'grass',
 						]).includes(c1.terrain)) {
@@ -423,7 +423,7 @@ window.game = {
 						const btn = document.createElement('button');
 						btn.innerHTML = 'Build Here';
 						btn.addEventListener('click', game.buildHere);
-						btn.dataset.building = building;
+						btn.dataset.improvement = options.improvement;
 						c1.html.appendChild(btn);
 						break;
 					}
@@ -524,22 +524,22 @@ window.game = {
 
 	build(e) {
 		const btn = e.target;
-		// User has only picked which building
+		// User has only picked which improvement
 		game.hideActions();
 		// Next, User needs to select where
 		game.buildMap('build', {
-			building: btn.dataset.building,
+			improvement: btn.dataset.improvement,
 		});
 		return;
 	},
 
-	// Place building here
+	// Place improvement here
 	buildHere(e) {
 		const btn = e.target;
 		const td = btn.closest('.tile');
 		console.log('td:', td);
 		const [col, row] = [td.dataset.col, td.dataset.row];
-		game.map[row][col].improvements.push(btn.dataset.building);
+		game.map[row][col].improvements.push(btn.dataset.improvement);
 		console.log('tile:', game.map[row][col]);
 		game.buildMap();
 		game.doAction();
@@ -619,9 +619,7 @@ game.map = [
 	['plains', 'grass', 'ocean', 'grass', 'plains'],
 	['plains', 'grass', 'ocean', 'grass', 'plains'],
 	['plains', 'plains', 'ocean', 'plains', 'plains'],
-].map((row) => {
-	return row.map(cell => new Tile(cell));
-});
+].map(row => row.map(cell => new Tile(cell)));
 
 const numPlayers = 4; // Math.round(Math.random() * (5 - 3) + 3);
 for (let i=0; i<numPlayers; i++) {
