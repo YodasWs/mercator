@@ -271,6 +271,7 @@ window.game = {
 			behavior: 'smooth',
 			block: 'center',
 		});
+		game.boardActions.querySelector('button:enabled').focus();
 		game.info.top.innerHTML = `Current Player: <b>${game.players[game.currentPlayer].name}</b>`;
 	},
 
@@ -451,7 +452,6 @@ window.game = {
 							break;
 						}
 
-						let btn;
 						[
 							'grain',
 							'vegetable',
@@ -462,7 +462,7 @@ window.game = {
 							}
 
 							if (game.players[game.currentPlayer].supplies[plant] > 0) {
-								btn = document.createElement('button');
+								const btn = document.createElement('button');
 								btn.innerHTML = `Sow ${plant}`;
 								btn.addEventListener('click', (e) => game.sow(e, plant));
 								c1.html.appendChild(btn);
@@ -477,8 +477,14 @@ window.game = {
 		game.boardMap.style.gridTemplateColumns = `repeat(${game.map[0].length}, 1fr)`;
 		game.boardMap.style.gridTemplateRows = `repeat(${game.map.length}, 1fr)`;
 
+		const btn = game.boardMap.querySelector('button:enabled');
+		if (btn instanceof Element) {
+			btn.focus();
+		}
+
 		game.boardMap.scrollIntoView({
 			behavior: 'smooth',
+			block: 'center',
 		});
 	},
 
@@ -497,6 +503,7 @@ window.game = {
 				game.btnSkip.removeAttribute('hidden');
 				break;
 		}
+		document.querySelector('#action-buttons button:not([hidden])').focus();
 	},
 
 	hideActions() {
