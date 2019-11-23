@@ -20,6 +20,7 @@ yodasws.page('play/main').setRoute({
 window.game = {
 	round: 0,
 	players: [],
+	nextPlayerOrder: [],
 	currentPlayer: 0,
 	currentActions: [],
 
@@ -298,8 +299,6 @@ window.game = {
 		switch (action) {
 			case 'build-traveling':
 				break;
-			case 'starting-player':
-				break;
 			case 'plow-sow':
 				game.currentActions = [
 					'plow',
@@ -333,6 +332,7 @@ window.game = {
 			case 'build-traveling':
 				break;
 			case 'starting-player':
+				game.nextPlayerOrder = game.players.slice(game.currentPlayer).concat(game.players);
 				break;
 			case 'vegetable':
 			case 'grain':
@@ -392,7 +392,11 @@ window.game = {
 		game.info.top.scrollIntoView({
 			behavior: 'smooth',
 			block: 'center',
-		})
+		});
+		if (game.nextPlayerOrder.length) {
+			game.players = game.nextPlayerOrder;
+			game.nextPlayerOrder = [];
+		}
 		setTimeout(() => {
 			game.startRound();
 		}, 1000);
