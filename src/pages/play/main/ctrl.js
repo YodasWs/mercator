@@ -192,6 +192,78 @@ window.game = {
 		},
 	],
 
+	startGame() {
+		// Build subaction buttons
+		const buttonHolder = document.getElementById('action-buttons')
+		Object.entries(game.buildings).forEach(([id, btn]) => {
+			const el = document.createElement('button');
+			el.addEventListener('click', game.build);
+			el.setAttribute('hidden', '');
+			buttonHolder.appendChild(el);
+			el.dataset.action = 'build';
+			el.dataset.improvement = id;
+			el.innerText = btn.name;
+		});
+		game.actionButtons = document.querySelectorAll('#action-buttons button');
+
+		game.buildMap();
+		game.startRound();
+	},
+
+	startRound() {
+		this.round++;
+		Object.entries(this.supplies).forEach(([key, num]) => {
+			if ([
+				'sheep',
+				'boar',
+				'cattle',
+				'horse',
+				'stone-1',
+				'stone-2',
+			].includes(key)) {
+				if (this.round >= this.actions.filter(a => a.action === key)[0].round) this.supplies[key]++;
+			} else if (key === 'wood') {
+				this.supplies[key] += 3;
+			} else {
+				this.supplies[key]++;
+			}
+		});
+
+		game.boardActions.classList.remove('end');
+		game.boardActions.innerHTML = '';
+
+		this.actions.forEach((action) => {
+			if (action.round && this.round < action.round) {
+				return;
+			}
+			if (action.players && action.players !== this.players.length) {
+				return;
+			}
+
+			const btn = document.createElement('button');
+			btn.innerHTML = action.text;
+			btn.dataset.action = action.action;
+			btn.addEventListener('click', this.takeAction);
+
+			[...btn.querySelectorAll('output')].forEach((output) => {
+				output.innerText = this.supplies[action.action];
+			});
+
+			game.boardActions.appendChild(btn);
+		});
+
+		[...game.boardActions.querySelectorAll('button')].forEach((btn) => {
+			btn.removeAttribute('disabled');
+		});
+
+		this.players.forEach((player) => {
+			player.availableWorkers = player.workers;
+		});
+
+		this.currentPlayer = 0;
+		game.startTurn();
+	},
+
 	startTurn() {
 		game.boardActions.classList.remove('disabled');
 		game.boardActions.scrollIntoView({
@@ -312,78 +384,6 @@ window.game = {
 		else game.endRound();
 	},
 
-	startGame() {
-		// Build subaction buttons
-		const buttonHolder = document.getElementById('action-buttons')
-		Object.entries(game.buildings).forEach(([id, btn]) => {
-			const el = document.createElement('button');
-			el.addEventListener('click', game.build);
-			el.setAttribute('hidden', '');
-			buttonHolder.appendChild(el);
-			el.dataset.action = 'build';
-			el.dataset.improvement = id;
-			el.innerText = btn.name;
-		});
-		game.actionButtons = document.querySelectorAll('#action-buttons button');
-
-		game.buildMap();
-		game.startRound();
-	},
-
-	startRound() {
-		this.round++;
-		Object.entries(this.supplies).forEach(([key, num]) => {
-			if ([
-				'sheep',
-				'boar',
-				'cattle',
-				'horse',
-				'stone-1',
-				'stone-2',
-			].includes(key)) {
-				if (this.round >= this.actions.filter(a => a.action === key)[0].round) this.supplies[key]++;
-			} else if (key === 'wood') {
-				this.supplies[key] += 3;
-			} else {
-				this.supplies[key]++;
-			}
-		});
-
-		game.boardActions.classList.remove('end');
-		game.boardActions.innerHTML = '';
-
-		this.actions.forEach((action) => {
-			if (action.round && this.round < action.round) {
-				return;
-			}
-			if (action.players && action.players !== this.players.length) {
-				return;
-			}
-
-			const btn = document.createElement('button');
-			btn.innerHTML = action.text;
-			btn.dataset.action = action.action;
-			btn.addEventListener('click', this.takeAction);
-
-			[...btn.querySelectorAll('output')].forEach((output) => {
-				output.innerText = this.supplies[action.action];
-			});
-
-			game.boardActions.appendChild(btn);
-		});
-
-		[...game.boardActions.querySelectorAll('button')].forEach((btn) => {
-			btn.removeAttribute('disabled');
-		});
-
-		this.players.forEach((player) => {
-			player.availableWorkers = player.workers;
-		});
-
-		this.currentPlayer = 0;
-		game.startTurn();
-	},
-
 	endRound() {
 		[...game.boardActions.querySelectorAll('button')].forEach((btn) => {
 			btn.setAttribute('disabled', '');
@@ -495,6 +495,10 @@ window.game = {
 		}
 	},
 
+	hideActions() {
+		game.actionButtons.forEach(btn => btn.setAttribute('hidden', ''));
+	},
+
 	plow(e) {
 		const farm = e.currentTarget.closest('.tile');
 		const [col, row] = [farm.dataset.col, farm.dataset.row];
@@ -516,10 +520,6 @@ window.game = {
 			[plant]: 1,
 		};
 		game.buildMap('sow');
-	},
-
-	hideActions() {
-		game.actionButtons.forEach(btn => btn.setAttribute('hidden', ''));
 	},
 
 	build(e) {
