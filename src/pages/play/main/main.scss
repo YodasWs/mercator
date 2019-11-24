@@ -13,13 +13,18 @@
 	#action-board {
 		$line-height: 1.3rem;
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax($line-height * 5, 1fr));
-		grid-template-columns: repeat(auto-fit, minmax(1fr, 150px));
+		grid-template-columns: repeat(auto-fit, minmax($line-height * 5, 1fr)) [right];
+		grid-template-rows: [top] repeat(auto-fit, $line-height * 5);
 		grid-auto-rows: $line-height * 5;
 		gap: 10px;
 
+		#player-info {
+			grid-column-end: right;
+			grid-row: top / span 2;
+			overflow: auto;
+		}
+
 		button {
-			flex: 1 0 33%;
 			padding: 2px 5px;
 			border: 2px solid green;
 			border-radius: 5px;

@@ -80,7 +80,7 @@ window.game = {
 			text: '<b>Starting Player</b>',
 		},
 		{
-			action: 'grain',
+			action: 'Grain',
 			text: '<b>Take 1 Grain</b>',
 		},
 		{
@@ -150,7 +150,7 @@ window.game = {
 			round: 5,
 		},
 		{
-			action: 'vegetable',
+			action: 'Vegetable',
 			text: '<b>Take 1 Vegetable</b>',
 			round: 3,
 		},
@@ -207,6 +207,13 @@ window.game = {
 		});
 		game.actionButtons = document.querySelectorAll('#action-buttons button');
 
+		const infoBox = document.getElementById('player-info');
+		Object.entries(game.player.supplies).forEach(([key, num]) => {
+			const div = document.createElement('div');
+			div.innerHTML = `${key}: <output data-supply="${key}">${num}`;
+			infoBox.appendChild(div);
+		});
+
 		game.buildMap();
 		game.startRound();
 	},
@@ -231,7 +238,9 @@ window.game = {
 		});
 
 		game.boardActions.classList.remove('end');
-		game.boardActions.innerHTML = '';
+		game.boardActions.querySelectorAll('button').forEach((btn) => {
+			game.boardActions.removeChild(btn);
+		});
 
 		this.actions.forEach((action) => {
 			if (action.round && this.round < action.round) {
@@ -294,6 +303,7 @@ window.game = {
 			[...actionTile.querySelectorAll('output')].forEach((output) => {
 				output.innerText = 0;
 			});
+			// TODO: Add to Player's Supply
 		}
 
 		// If action does multiple actions, build that list here
@@ -336,8 +346,8 @@ window.game = {
 				game.nextPlayerOrder = game.players.slice(game.currentPlayer)
 					.concat(game.players.slice(0, game.currentPlayer));
 				break;
-			case 'vegetable':
-			case 'grain':
+			case 'Vegetable':
+			case 'Grain':
 				game.players[game.currentPlayer].supplies[action]++;
 				break;
 			case 'plow':
@@ -382,6 +392,8 @@ window.game = {
 			}
 		}
 
+		game.updateInfo();
+
 		if (nextTurn) game.startTurn();
 		else game.endRound();
 	},
@@ -402,6 +414,13 @@ window.game = {
 		setTimeout(() => {
 			game.startRound();
 		}, 1000);
+	},
+
+	// Update display of Player's supplies
+	updateInfo() {
+		document.querySelectorAll('#player-info output').forEach((output) => {
+			output.innerHTML = game.player.supplies[output.dataset.supply];
+		});
 	},
 
 	buildMap(action, options = {}) {
@@ -454,8 +473,8 @@ window.game = {
 						}
 
 						[
-							'grain',
-							'vegetable',
+							'Grain',
+							'Vegetable',
 						].forEach((plant, i, plants) => {
 							// Can't sow over other plants
 							if (c1.improvements.intersects(plants)) {
@@ -584,12 +603,12 @@ function Player(name) {
 	this.workers = 2;
 	this.availableWorkers = 2;
 	this.supplies = {
-		'wood': 0,
-		'clay': 0,
-		'reed': 0,
-		'stone': 0,
-		'grain': 0,
-		'vegetable': 0,
+		'Grain': 0,
+		'Vegetable': 0,
+		'Wood': 0,
+		'Clay': 0,
+		'Reed': 0,
+		'Stone': 0,
 	};
 	this.name = name;
 }
