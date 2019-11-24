@@ -2,7 +2,7 @@ yodasws.page('play/main').setRoute({
 	template: 'pages/play/main/main.html',
 	route: '/play/main/',
 }).on('load', () => {
-	console.log('Players:', game.players[0]);
+	console.log('Player:', game.players[0]);
 	game.btnSkip = document.getElementById('btnSkip');
 	game.btnSkip.addEventListener('click', (e) => {
 		game.buildMap();
@@ -57,13 +57,13 @@ window.game = {
 	},
 
 	supplies: {
-		'sheep': 0,
-		'boar': 0,
-		'cattle': 0,
-		'horse': 0,
-		'wood': 0,
-		'clay': 0,
-		'reed': 0,
+		'Sheep': 0,
+		'Boar': 0,
+		'Cattle': 0,
+		'Horse': 0,
+		'Wood': 0,
+		'Clay': 0,
+		'Reed': 0,
 		'stone-1': 0,
 		'stone-2': 0,
 		'reed-stone-food': 0,
@@ -125,22 +125,22 @@ window.game = {
 			round: 1,
 		},
 		{
-			action: 'sheep',
+			action: 'Sheep',
 			text: '<b><output></output> Sheep</b>',
 			round: 1,
 		},
 		{
-			action: 'boar',
+			action: 'Boar',
 			text: '<b><output></output> Wild Boar</b>',
 			round: 3,
 		},
 		{
-			action: 'cattle',
+			action: 'Cattle',
 			text: '<b><output></output> Cattle</b>',
 			round: 4,
 		},
 		{
-			action: 'horse',
+			action: 'Horse',
 			text: '<b><output></output> Horse</b>',
 			round: 5,
 		},
@@ -155,15 +155,15 @@ window.game = {
 			round: 3,
 		},
 		{
-			action: 'wood',
+			action: 'Wood',
 			text: '<b><output></output> Wood</b>',
 		},
 		{
-			action: 'clay',
+			action: 'Clay',
 			text: '<b><output></output> Clay</b>',
 		},
 		{
-			action: 'reed',
+			action: 'Reed',
 			text: '<b><output></output> Reed</b>',
 		},
 		{
@@ -222,15 +222,15 @@ window.game = {
 		this.round++;
 		Object.entries(this.supplies).forEach(([key, num]) => {
 			if ([
-				'sheep',
-				'boar',
-				'cattle',
-				'horse',
+				'Sheep',
+				'Boar',
+				'Cattle',
+				'Horse',
 				'stone-1',
 				'stone-2',
 			].includes(key)) {
 				if (this.round >= this.actions.filter(a => a.action === key)[0].round) this.supplies[key]++;
-			} else if (key === 'wood') {
+			} else if (key === 'Wood') {
 				this.supplies[key] += 3;
 			} else {
 				this.supplies[key]++;
@@ -290,20 +290,45 @@ window.game = {
 		}
 		game.boardActions.classList.add('disabled');
 
-		if (game.players[game.currentPlayer].availableWorkers <= 0) {
+		const player = game.players[game.currentPlayer];
+		if (player.availableWorkers <= 0) {
 			return;
 		}
 
 		const action = e instanceof Event ? e.currentTarget.dataset.action : e;
 		const actionTile = e instanceof Event ? e.currentTarget : document.querySelector(`button[data-action="${action}"]`);
 		actionTile.setAttribute('disabled', '');
-		game.players[game.currentPlayer].availableWorkers--;
+		player.availableWorkers--;
 		if (game.supplies[action]) {
-			game.supplies[action] = 0;
 			[...actionTile.querySelectorAll('output')].forEach((output) => {
 				output.innerText = 0;
 			});
-			// TODO: Add to Player's Supply
+			switch (action) {
+				case 'Cattle':
+				case 'Horse':
+				case 'Sheep':
+				case 'Boar':
+				case 'Clay':
+				case 'Reed':
+				case 'Wood':
+					player.supplies[action] += game.supplies[action];
+					break;
+				case 'stone-1':
+				case 'stone-2':
+					player.supplies.Stone += game.supplies[action];
+					break;
+				case 'reed-stone-food':
+					player.supplies.Stone += game.supplies[action];
+					player.supplies.Reed += game.supplies[action];
+					player.supplies.Food += game.supplies[action];
+					break;
+				case 'reed-stone-wood':
+					player.supplies.Stone += game.supplies[action];
+					player.supplies.Reed += game.supplies[action];
+					player.supplies.Wood += game.supplies[action];
+					break;
+			}
+			game.supplies[action] = 0;
 		}
 
 		// If action does multiple actions, build that list here
@@ -334,6 +359,7 @@ window.game = {
 			game.endAction();
 			return;
 		}
+		const player = game.players[game.currentPlayer];
 
 		switch (action) {
 			case 'build':
@@ -348,7 +374,7 @@ window.game = {
 				break;
 			case 'Vegetable':
 			case 'Grain':
-				game.players[game.currentPlayer].supplies[action]++;
+				player.supplies[action]++;
 				break;
 			case 'plow':
 			case 'sow':
@@ -359,17 +385,18 @@ window.game = {
 			case 'laborer':
 				break;
 			case 'fishing':
+				player.supplies.Food += 2;
 				break;
 			case 'fences':
 				break;
 			case 'hire':
-				if (game.players[game.currentPlayer].workers < 5) {
-					game.players[game.currentPlayer].workers++;
+				if (player.workers < 5) {
+					player.workers++;
 				}
 				break;
 			case 'hire-wo-room':
-				if (game.players[game.currentPlayer].workers < 5) {
-					game.players[game.currentPlayer].workers++;
+				if (player.workers < 5) {
+					player.workers++;
 				}
 				break;
 			case 'animal':
@@ -609,6 +636,7 @@ function Player(name) {
 		'Clay': 0,
 		'Reed': 0,
 		'Stone': 0,
+		'Food': 0,
 	};
 	this.name = name;
 }

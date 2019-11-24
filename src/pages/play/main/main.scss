@@ -114,12 +114,12 @@
 				background: $farm;
 			}
 
-			&[data-use~="grain"] {
+			&[data-use~="Grain"] {
 				background: gold;
 				border: 5px solid $farm;
 			}
 
-			&[data-use~="vegetable"] {
+			&[data-use~="Vegetable"] {
 				background: #e97a1c;
 				border: 5px solid $farm;
 			}
