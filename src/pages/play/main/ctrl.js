@@ -333,7 +333,8 @@ window.game = {
 			case 'build-traveling':
 				break;
 			case 'starting-player':
-				game.nextPlayerOrder = game.players.slice(game.currentPlayer).concat(game.players);
+				game.nextPlayerOrder = game.players.slice(game.currentPlayer)
+					.concat(game.players.slice(0, game.currentPlayer));
 				break;
 			case 'vegetable':
 			case 'grain':
@@ -576,7 +577,7 @@ game.actions.sort((a, b) => {
 	a.i = i;
 	return !!a.round;
 }).forEach((a, round) => {
-	game.actions[a.i].round = round + 1;
+	a.round = round + 1;
 });
 
 function Player(name) {
@@ -636,3 +637,4 @@ const numPlayers = 4; // Math.round(Math.random() * (5 - 3) + 3);
 for (let i=0; i<numPlayers; i++) {
 	game.players.push(new Player(i === 0 ? 'You!' : names[i /* Math.floor(Math.random() * names.length) */]));
 }
+game.player = game.players[0];
